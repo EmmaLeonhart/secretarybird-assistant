@@ -44,11 +44,34 @@ Because it already works and it has almost zero overhead. The program is functio
 
 ---
 
+## The Personal Story (USE THIS — it's the emotional hook)
+
+> "My files were a disaster. I have ADHD and dyslexia, and organization has been a lifelong struggle. Then I discovered AI agents — and for the first time, I could actually get my life organized.
+>
+> But here's the thing: I'm a programmer. I had the privilege of being able to install five different tools, configure WSL, set up API keys, troubleshoot dependencies. Most people can't do that.
+>
+> There's someone out there running a restaurant who has the same organization problems I had. They're drowning in messy spreadsheets and scattered files and they don't know what their competitors are doing. They deserve the same transformation I got — but their skill is cooking, not programming.
+>
+> That's why we built Sakuya. One click to install. No command line. No API keys to manage. The restaurant owner gets the same AI-powered organization that changed my life — without needing to be a developer to access it."
+
+**Why this story works:**
+- It's authentic and personal — judges remember stories, not feature lists
+- It connects the technical product to a real human need
+- It answers "why does this matter?" before anyone asks
+- It directly addresses the adoption problem the judges raised
+- The restaurant owner is a concrete, relatable character the judges can picture
+
+---
+
 ## Delivering the Pitch
 
 ### Know your audience
 - **Research the judges.** Find out who they are, what companies they're from, what they care about. Tailor examples to their background (e.g., if a judge is from a SaaS company, emphasize the API discovery and pipeline features; if from consulting, lead with Blue Ocean Strategy).
 - LinkedIn the judges before the event if possible.
+- **The three audiences** (from pitch framework): investors, customers, and policymakers. Even if the judges aren't literally these people, they're evaluating whether you *could* pitch to them:
+  - **Investors**: Does this make money? What's the business model? → Freemium, competitor analysis alone justifies a subscription
+  - **Customers** (SMB owners): Does this solve my problem today? Is it easy to use? → One-click install, connects to tools you already have
+  - **Policymakers**: Is this responsible? Data privacy? → Runs locally, your data never leaves your machine, LLM-agnostic so no single vendor dependency
 
 ### Engage the audience
 - Don't just talk AT them — ask a rhetorical question early: "How many of you have seen a small business owner try to make sense of a messy spreadsheet at 11pm?"
