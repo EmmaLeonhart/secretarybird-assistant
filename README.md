@@ -13,6 +13,7 @@ Tojo Assistant provides an Electron desktop GUI wrapping OpenClaw with specializ
 - **Google Suite Integration** - Google Sheets read/write/error-check, Google Drive file management
 - **Database Connectivity** - PostgreSQL, MySQL, SQLite, and MongoDB support with schema introspection
 - **API Discovery** - Parse OpenAPI/Swagger specs, store API configs, test endpoints
+- **Competitor Analysis & Blue Ocean Strategy** - Web-scrape competitor websites, build a Strategy Canvas, apply the Four Actions Framework (Eliminate / Reduce / Raise / Create), and surface uncontested market opportunities. Turns Tojo from a data tool into a strategic business consultant
 - **Data Pipeline Builder** - Chain source, transform, and destination steps into reusable pipelines
 - **OpenClaw Bridge** - WSL-aware bridge to OpenClaw (LLM-agnostic CLI, works with any LLM including local models)
 
@@ -23,11 +24,12 @@ Electron Desktop App (Kirumi Tojo themed UI)
         |  IPC / HTTP
 Python Backend (FastAPI)
         |
-   Core          Integrations       Pipeline    OpenClaw
-   - File Org    - Salesforce        - Builder   - WSL Bridge
+   Core          Integrations          Pipeline    OpenClaw
+   - File Org    - Salesforce          - Builder   - WSL Bridge
    - Excel       - Google Suite
    - Data Proc   - Databases
                  - API Discovery
+                 - Competitor Analysis
 ```
 
 ## Getting Started
@@ -106,9 +108,9 @@ tojo-assistant/
 
 | Category | Points | Our approach |
 |---|---|---|
-| **Technical Complexity & Implementation** | **/15** | **This is the big one.** 8 working skills, LLM-agnostic architecture via OpenClaw, Electron desktop app, full test suite (50 tests), CI/CD pipeline, script generation. We're not demoing a mockup — this is a working product. |
-| Innovation & Creativity | /10 |  |
-| Entrepreneurial Value & Business Impact | /10 |  |
+| **Technical Complexity & Implementation** | **/15** | **This is the big one.** 9 working skills (including web-scraping competitor analysis), LLM-agnostic architecture via OpenClaw, Electron desktop app, full test suite (60+ tests), CI/CD pipeline, script generation. We're not demoing a mockup — this is a working product. |
+| Innovation & Creativity | /10 | Blue Ocean Strategy analysis — web-scrape competitors, build a Strategy Canvas, auto-generate the Four Actions Framework. No other hackathon project replaces a business consultant. |
+| Entrepreneurial Value & Business Impact | /10 | The competitor analysis feature alone justifies a subscription. Businesses pay consultants thousands for the kind of strategic output Tojo generates from a URL list. |
 | Design & User Experience | /10 |  |
 | Presentation | /5 |  |
 | Q&A Session | /5 |  |
@@ -118,6 +120,8 @@ tojo-assistant/
 - **Technical depth** is our strongest card — working prototype, not slides
 - The AI doesn't just chat — it **generates real code** (scripts, automations)
 - **LLM-agnostic** means the customer saves money — use what you already pay for
+- **Competitor Analysis** is the killer feature — it doesn't just replace a database person, it replaces a strategy consultant. Give it your competitors' URLs and it delivers a full Blue Ocean Strategy analysis: Strategy Canvas, Four Actions Framework, and actionable recommendations for uncontested market space
+- Blue Ocean Strategy is a proven framework used by Fortune 500 companies — Tojo automates it for SMBs who can't afford McKinsey
 
 
 
