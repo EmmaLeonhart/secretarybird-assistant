@@ -4,8 +4,9 @@
 Tojo Assistant is a business data assistant themed after Kirumi Tojo from Danganronpa.
 It provides an Electron desktop GUI that wraps OpenClaw (Claude Code CLI) with
 specialized business capabilities: file organization, Salesforce integration,
-Excel/Google Sheets processing & error checking, database connectivity, and
-dynamic API discovery for building data pipelines.
+Excel/Google Sheets processing & error checking, database connectivity,
+dynamic API discovery for building data pipelines, and competitor analysis
+with Blue Ocean Strategy (web scraping + strategic framework analysis).
 
 ## System Architecture
 
@@ -32,6 +33,7 @@ dynamic API discovery for building data pipelines.
     |      +-- Google Suite
     |      +-- Databases
     |      +-- API Discovery
+    |      +-- Competitor Analysis (Blue Ocean Strategy)
     |
     +-- File Organizer
     +-- Excel/Sheets Error Checker
@@ -72,7 +74,8 @@ tojo-assistant/
 │   │   ├── salesforce.py
 │   │   ├── google_suite.py
 │   │   ├── databases.py
-│   │   └── api_discovery.py
+│   │   ├── api_discovery.py
+│   │   └── competitor_analysis.py
 │   ├── pipeline/          # Data pipeline builder
 │   │   └── builder.py
 │   └── openclaw/          # OpenClaw bridge
@@ -110,5 +113,6 @@ tojo-assistant/
    - Simple data ops -> Core modules handle directly
    - Complex reasoning -> OpenClaw bridge delegates to Claude
    - External data -> Integration modules fetch/push
+   - Competitor analysis -> Scraper fetches competitor sites, analyzer produces Blue Ocean Strategy
 4. Results stream back via WebSocket to Electron UI
 5. Pipeline builder chains multiple steps together

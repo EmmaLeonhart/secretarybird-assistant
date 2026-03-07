@@ -252,6 +252,7 @@
           <button class="quick-action-btn" data-action="organize-files">Organize my files</button>
           <button class="quick-action-btn" data-action="check-spreadsheet">Check a spreadsheet</button>
           <button class="quick-action-btn" data-action="analyze-data">Analyze data</button>
+          <button class="quick-action-btn" data-action="analyze-competitors">Analyze competitors</button>
           <button class="quick-action-btn" data-action="build-pipeline">Build a pipeline</button>
         </div>
       </div>
@@ -321,6 +322,9 @@
     'connect-salesforce':  'I would like to connect to Salesforce. Please guide me through the setup.',
     'connect-gsheets':     'I would like to connect to Google Sheets.',
     'connect-database':    'I would like to connect to a database. What connection details are needed?',
+    'analyze-competitors':  null,  // special handling
+    'blue-ocean':           null,  // special handling
+    'scrape-competitor':    null,  // special handling
     'build-pipeline':      'I would like to build a data pipeline. Please help me configure the steps.',
     'run-pipeline':        'Please run the configured data pipeline.',
     'view-logs':           'Show me the recent pipeline execution logs.',
@@ -369,6 +373,49 @@
         sendUserMessage(`Please check this spreadsheet for errors: ${filePath}`);
         return;
       }
+    }
+
+    // Competitor analysis actions
+    if (action === 'analyze-competitors') {
+      sendUserMessage(
+        'I would like to run a competitor analysis with Blue Ocean Strategy. ' +
+        'Please help me identify my competitors and analyze the competitive landscape.'
+      );
+      sendToBackend({
+        type: 'message',
+        content: 'Start competitor analysis',
+        context: { handler: 'competitor_analysis' },
+        history: chatHistory.slice(-20),
+      });
+      return;
+    }
+
+    if (action === 'blue-ocean') {
+      sendUserMessage(
+        'I want to create a Blue Ocean Strategy Canvas for my business. ' +
+        'Help me identify uncontested market space and strategic opportunities.'
+      );
+      sendToBackend({
+        type: 'message',
+        content: 'Blue Ocean Strategy analysis',
+        context: { handler: 'competitor_analysis' },
+        history: chatHistory.slice(-20),
+      });
+      return;
+    }
+
+    if (action === 'scrape-competitor') {
+      sendUserMessage(
+        'I want to scout a specific competitor. ' +
+        'Please tell me their website URL and I will gather intelligence on them.'
+      );
+      sendToBackend({
+        type: 'message',
+        content: 'Scout a competitor',
+        context: { handler: 'competitor_analysis' },
+        history: chatHistory.slice(-20),
+      });
+      return;
     }
 
     // Default: send the mapped message
