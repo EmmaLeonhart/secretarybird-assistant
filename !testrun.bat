@@ -1,0 +1,64 @@
+@echo off
+title Tojo Assistant - Test Run
+echo ========================================
+echo   Tojo Assistant - Test Run
+echo   "I shall handle everything."
+echo ========================================
+echo.
+
+REM --- Check for Node.js ---
+where node >NUL 2>NUL
+if errorlevel 1 (
+    echo [ERROR] Node.js is not installed or not in PATH.
+    echo Please install Node.js from https://nodejs.org/
+    pause
+    exit /b 1
+)
+
+REM --- Check for Python ---
+where python >NUL 2>NUL
+if errorlevel 1 (
+    echo [ERROR] Python is not installed or not in PATH.
+    echo Please install Python from https://python.org/
+    pause
+    exit /b 1
+)
+
+REM --- Install Node.js dependencies if needed ---
+if not exist "node_modules" (
+    echo [1/3] Installing Node.js dependencies...
+    call npm install
+    if errorlevel 1 (
+        echo [ERROR] npm install failed.
+        pause
+        exit /b 1
+    )
+) else (
+    echo [1/3] Node.js dependencies already installed.
+)
+
+REM --- Install Python dependencies if needed ---
+python -c "import fastapi" >NUL 2>NUL
+if errorlevel 1 (
+    echo [2/3] Installing Python dependencies...
+    pip install -r requirements.txt
+    if errorlevel 1 (
+        echo [ERROR] pip install failed.
+        pause
+        exit /b 1
+    )
+) else (
+    echo [2/3] Python dependencies already installed.
+)
+
+REM --- Launch the Electron app (which starts the Python backend automatically) ---
+echo [3/3] Starting Tojo Assistant...
+echo.
+echo   The Electron app will start the Python backend automatically.
+echo   Close the Tojo Assistant window to stop everything.
+echo.
+npx electron .
+
+echo.
+echo Tojo Assistant closed.
+pause
