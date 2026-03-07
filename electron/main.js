@@ -10,6 +10,14 @@ const PRELOAD_PATH = path.join(__dirname, 'preload.js');
 const RENDERER_PATH = path.join(__dirname, 'renderer', 'index.html');
 const BACKEND_DIR = path.join(ROOT_DIR, 'backend');
 
+// ── Packaged mode detection ─────────────────────────────────────────────────
+// When built with electron-builder, app.isPackaged is true and the PyInstaller
+// backend exe lives in resources/backend/tojo-backend/tojo-backend.exe
+const IS_PACKAGED = app.isPackaged;
+const PACKAGED_BACKEND_EXE = IS_PACKAGED
+  ? path.join(process.resourcesPath, 'backend', 'tojo-backend', 'tojo-backend.exe')
+  : null;
+
 // ── State ──────────────────────────────────────────────────────────────────────
 let mainWindow = null;
 let tray = null;
@@ -19,13 +27,32 @@ let backendReady = false;
 // ── Backend lifecycle ──────────────────────────────────────────────────────────
 
 function startBackend() {
-  // Attempt to start the Python FastAPI backend server
-  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-  const serverScript = path.join(BACKEND_DIR, 'server.py');
+  let cmd, args, cwd;
+
+  if (IS_PACKAGED && PACKAGED_BACKEND_EXE) {
+    // Packaged mode: run the PyInstaller-built executable
+    const fs = require('fs');
+    if (fs.existsSync(PACKAGED_BACKEND_EXE)) {
+      cmd = PACKAGED_BACKEND_EXE;
+      args = [];
+      cwd = path.dirname(PACKAGED_BACKEND_EXE);
+      console.log('[backend] Using packaged exe:', cmd);
+    } else {
+      console.warn('[backend] Packaged exe not found, falling back to Python');
+      cmd = process.platform === 'win32' ? 'python' : 'python3';
+      args = [path.join(BACKEND_DIR, 'server.py')];
+      cwd = BACKEND_DIR;
+    }
+  } else {
+    // Dev mode: run via Python interpreter
+    cmd = process.platform === 'win32' ? 'python' : 'python3';
+    args = [path.join(BACKEND_DIR, 'server.py')];
+    cwd = BACKEND_DIR;
+  }
 
   try {
-    backendProcess = spawn(pythonCmd, [serverScript], {
-      cwd: BACKEND_DIR,
+    backendProcess = spawn(cmd, args, {
+      cwd: cwd,
       stdio: ['pipe', 'pipe', 'pipe'],
       env: { ...process.env, PYTHONUNBUFFERED: '1' },
     });
