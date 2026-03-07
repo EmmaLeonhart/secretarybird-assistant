@@ -30,6 +30,7 @@ from backend.integrations.salesforce import SalesforceConnector, SalesforceConfi
 from backend.integrations.google_suite import GoogleSuiteConnector, GoogleSheetsConfig
 from backend.integrations.databases import DatabaseConnector, DatabaseConfig
 from backend.integrations.api_discovery import APIDiscovery, APIConfig
+from backend.integrations.competitor_analysis import CompetitorAnalysis
 from backend.pipeline.builder import PipelineBuilder, PipelineDefinition
 from backend.openclaw.bridge import OpenClawBridge
 
@@ -59,6 +60,7 @@ async def lifespan(app: FastAPI):
     _state["data_processor"] = DataProcessor()
     _state["pipeline_builder"] = PipelineBuilder()
     _state["api_discovery"] = APIDiscovery()
+    _state["competitor_analysis"] = CompetitorAnalysis()
     _state["openclaw_bridge"] = OpenClawBridge()
     _state["active_websockets"] = set()
 
@@ -180,6 +182,20 @@ class APITestRequest(BaseModel):
     auth_credentials: Optional[dict[str, str]] = None
 
 
+class CompetitorAnalysisRequest(BaseModel):
+    """Competitor analysis request."""
+    industry: str = "default"
+    competitors: list[dict[str, str]]  # [{"url": "...", "name": "..."}]
+    your_company: Optional[str] = None
+    custom_scores: Optional[dict[str, dict[str, int]]] = None
+
+
+class CompetitorScrapeRequest(BaseModel):
+    """Single competitor scrape request."""
+    url: str
+    name: Optional[str] = None
+
+
 class PipelineRunRequest(BaseModel):
     """Pipeline execution request."""
     definition: dict[str, Any]
@@ -258,6 +274,8 @@ async def websocket_chat(ws: WebSocket):
                     result = await _handle_data_chat(user_message, context)
                 elif handler == "pipeline":
                     result = await _handle_pipeline_chat(user_message, context)
+                elif handler == "competitor_analysis":
+                    result = await _handle_competitor_chat(user_message, context)
                 else:
                     # Default handler uses OpenClaw streaming when available
                     bridge: OpenClawBridge = _state.get("openclaw_bridge")
@@ -322,6 +340,7 @@ def _handle_default_chat(message: str) -> str:
         "database queries",
         "API discovery",
         "data pipeline building",
+        "competitor analysis & Blue Ocean Strategy",
     ]
     return (
         f"I received your message: \"{message}\"\n\n"
@@ -358,6 +377,35 @@ async def _handle_data_chat(message: str, context: dict) -> str:
 async def _handle_pipeline_chat(message: str, context: dict) -> str:
     """Handle pipeline requests from chat."""
     return "Pipeline building via chat: please use the REST endpoints for structured operations."
+
+
+async def _handle_competitor_chat(message: str, context: dict) -> str:
+    """Handle competitor analysis requests from chat."""
+    analysis: CompetitorAnalysis = _state["competitor_analysis"]
+
+    competitors = context.get("competitors", [])
+    industry = context.get("industry", "default")
+    your_company = context.get("your_company")
+
+    if not competitors:
+        return (
+            "I can help you analyze your competitors using Blue Ocean Strategy. "
+            "Please provide competitor details using the sidebar or REST API.\n\n"
+            "**What I need:**\n"
+            "- Competitor website URLs (I'll scrape them for intelligence)\n"
+            "- Your industry type (saas, ecommerce, consulting, or general)\n"
+            "- Optionally, your company name\n\n"
+            f"**Supported industries:** {', '.join(analysis.list_industries())}\n\n"
+            "Use the **Analyze Competitors** button in the sidebar to get started, "
+            "or send competitor URLs directly in the chat."
+        )
+
+    report = await analysis.analyze(
+        industry=industry,
+        competitors=competitors,
+        your_company=your_company,
+    )
+    return analysis.format_report_text(report)
 
 
 # ---------------------------------------------------------------------------
@@ -627,6 +675,79 @@ async def test_api_endpoint(req: APITestRequest) -> JSONResponse:
             auth_credentials=req.auth_credentials,
         )
         return JSONResponse(content=result)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+# ---------------------------------------------------------------------------
+# Competitor Analysis Endpoints
+# ---------------------------------------------------------------------------
+@app.post("/api/competitors/analyze", tags=["competitor-analysis"])
+async def analyze_competitors(req: CompetitorAnalysisRequest) -> JSONResponse:
+    """
+    Run a full competitor analysis with Blue Ocean Strategy.
+
+    Scrapes competitor websites, builds a Strategy Canvas, applies the
+    Four Actions Framework, and identifies Blue Ocean opportunities.
+    """
+    try:
+        analysis: CompetitorAnalysis = _state["competitor_analysis"]
+        report = await analysis.analyze(
+            industry=req.industry,
+            competitors=req.competitors,
+            your_company=req.your_company,
+            custom_scores=req.custom_scores,
+        )
+        return JSONResponse(content=report.to_dict())
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/competitors/scrape", tags=["competitor-analysis"])
+async def scrape_competitor(req: CompetitorScrapeRequest) -> JSONResponse:
+    """Scrape a single competitor website for a quick preview."""
+    try:
+        analysis: CompetitorAnalysis = _state["competitor_analysis"]
+        profile = await analysis.scrape_single(req.url, req.name)
+        return JSONResponse(content=profile.to_dict())
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/competitors/industries", tags=["competitor-analysis"])
+async def list_industries() -> JSONResponse:
+    """List supported industry types for competitor analysis."""
+    analysis: CompetitorAnalysis = _state["competitor_analysis"]
+    industries = analysis.list_industries()
+    factors_by_industry = {
+        ind: analysis.get_industry_factors(ind) for ind in industries
+    }
+    return JSONResponse(content={
+        "industries": industries,
+        "factors": factors_by_industry,
+    })
+
+
+@app.get("/api/competitors/reports", tags=["competitor-analysis"])
+async def list_competitor_reports() -> JSONResponse:
+    """List previously saved competitor analysis reports."""
+    analysis: CompetitorAnalysis = _state["competitor_analysis"]
+    return JSONResponse(content={"reports": analysis.list_reports()})
+
+
+@app.post("/api/competitors/save", tags=["competitor-analysis"])
+async def save_competitor_report(req: CompetitorAnalysisRequest) -> JSONResponse:
+    """Run analysis and save the report to disk."""
+    try:
+        analysis: CompetitorAnalysis = _state["competitor_analysis"]
+        report = await analysis.analyze(
+            industry=req.industry,
+            competitors=req.competitors,
+            your_company=req.your_company,
+            custom_scores=req.custom_scores,
+        )
+        path = analysis.save_report(report)
+        return JSONResponse(content={"saved": True, "path": str(path)})
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 

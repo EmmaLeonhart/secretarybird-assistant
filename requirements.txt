@@ -25,6 +25,9 @@ psycopg2-binary>=2.9.9
 pymysql>=1.1.0
 pymongo>=4.6.0
 
+# Web scraping (competitor analysis)
+beautifulsoup4>=4.12.0
+
 # HTTP and serialization
 httpx>=0.25.0
 pyyaml>=6.0.1
