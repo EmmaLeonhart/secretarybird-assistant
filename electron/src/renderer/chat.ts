@@ -137,8 +137,8 @@ export function clearChat(onQuickActionsBound: () => void): void {
   chatArea.innerHTML = `
     <div class="welcome-card">
       <img src="${AVATAR_SRC}" alt="Secretary Bird" class="welcome-avatar" />
-      <h2>Welcome. I am Sakuya Assistant.</h2>
-      <p>I shall handle everything. Please tell me what you need, and I will attend to it promptly and precisely.</p>
+      <h2>Welcome to Secretary Bird Assistant.</h2>
+      <p>Your AI-powered business assistant. Tell me what you need and I'll handle it.</p>
       <div class="quick-actions">
         <button class="quick-action-btn" data-action="organize-files">Organize my files</button>
         <button class="quick-action-btn" data-action="check-spreadsheet">Check a spreadsheet</button>

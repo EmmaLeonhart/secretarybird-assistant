@@ -1,5 +1,5 @@
 /**
- * Build script for Sakuya Assistant Electron app.
+ * Build script for Secretary Bird Assistant Electron app.
  * Compiles TypeScript → JavaScript using tsc (main/preload) and esbuild (renderer).
  */
 

@@ -1,7 +1,7 @@
-# Sakuya Assistant - Architecture
+# Secretary Bird Assistant - Architecture
 
 ## Overview
-Sakuya Assistant is a business data assistant themed after Izayoi Sakuya from Touhou Project,
+Secretary Bird Assistant is a business data assistant themed after Secretary Bird from Touhou Project,
 built for the Girls in Tech Hackathon 2026 at UBC Okanagan.
 
 It provides an Electron desktop GUI that wraps OpenClaw (LLM-agnostic CLI) with
@@ -15,7 +15,7 @@ with Blue Ocean Strategy (web scraping + strategic framework analysis).
 ```
 +-------------------------------+
 |    Electron Desktop App       |
-|   (Izayoi Sakuya themed UI)   |
+|   (Secretary Bird themed UI)   |
 |   TypeScript + esbuild        |
 |   - Chat interface            |
 |   - Sidebar navigation        |
@@ -46,7 +46,7 @@ with Blue Ocean Strategy (web scraping + strategic framework analysis).
 
 ## OpenClaw Integration
 
-OpenClaw runs inside WSL and provides the LLM backend. Sakuya connects via HTTP:
+OpenClaw runs inside WSL and provides the LLM backend. Secretary Bird connects via HTTP:
 
 ```
 Electron (Windows)
@@ -100,7 +100,7 @@ tojo-assistant/
 │   │       └── markdown.ts   # Lightweight Markdown renderer
 │   ├── compiled/             # tsc output (main + preload, gitignored)
 │   └── renderer/             # Frontend assets
-│       ├── index.html        # Main UI (Izayoi Sakuya theme)
+│       ├── index.html        # Main UI (Secretary Bird theme)
 │       ├── styles.css        # Dark theme + gold accents
 │       └── app.js            # esbuild bundle (IIFE, gitignored)
 ├── backend/
@@ -217,5 +217,5 @@ Development:
 
 Production:
   build_backend.py → PyInstaller → dist/backend/tojo-backend/tojo-backend.exe
-  npm run build    → compile:prod + electron-builder → Sakuya-Assistant-Setup.exe
+  npm run build    → compile:prod + electron-builder → SecretaryBird-Assistant-Setup.exe
 ```
