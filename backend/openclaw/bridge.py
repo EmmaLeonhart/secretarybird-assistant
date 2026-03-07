@@ -230,8 +230,11 @@ class OpenClawBridge:
 
     def detect(self) -> dict[str, Any]:
         """
-        Detect whether the OpenClaw gateway is reachable and the
-        chat completions endpoint is enabled.
+        Detect whether the OpenClaw gateway is reachable.
+
+        Only checks gateway reachability (fast GET /), does NOT send a
+        full chat request. The chat completions endpoint is tested
+        lazily on first actual message.
 
         Returns:
             Dictionary with 'available', 'gateway_url', 'agent_id', and optional 'error'.
@@ -239,7 +242,7 @@ class OpenClawBridge:
         url = self._get_gateway_url()
         try:
             with httpx.Client(timeout=5.0) as client:
-                # First check if gateway is up at all
+                # Check if gateway is up (serves its web UI at /)
                 resp = client.get(url)
                 if resp.status_code != 200:
                     return {
@@ -249,39 +252,13 @@ class OpenClawBridge:
                         "error": f"Gateway returned status {resp.status_code}",
                     }
 
-                # Test the chat completions endpoint with a minimal request
-                chat_url = f"{url}/v1/chat/completions"
-                chat_resp = client.post(
-                    chat_url,
-                    headers=self._build_headers(),
-                    json={
-                        "model": f"openclaw:{self._agent_id}",
-                        "messages": [{"role": "user", "content": "ping"}],
-                    },
-                )
-
-                if chat_resp.status_code == 405:
-                    return {
-                        "available": False,
-                        "gateway_url": url,
-                        "agent_id": self._agent_id,
-                        "error": "Chat completions endpoint is disabled. "
-                                 "Enable it in ~/.openclaw/openclaw.json: "
-                                 "gateway.http.endpoints.chatCompletions.enabled = true",
-                    }
-
-                if chat_resp.status_code == 401:
-                    return {
-                        "available": False,
-                        "gateway_url": url,
-                        "agent_id": self._agent_id,
-                        "error": "Authentication failed. Check gateway token.",
-                    }
-
+                # Gateway is up — check if we have an auth token
+                token = self._get_auth_token()
                 return {
-                    "available": chat_resp.status_code == 200,
+                    "available": True,
                     "gateway_url": url,
                     "agent_id": self._agent_id,
+                    "has_auth": token is not None,
                 }
 
         except httpx.ConnectError:
@@ -290,7 +267,7 @@ class OpenClawBridge:
                 "gateway_url": url,
                 "agent_id": self._agent_id,
                 "error": "Cannot connect to OpenClaw gateway. "
-                         "Start it with: openclaw gateway (in WSL/Ubuntu)",
+                         "Start it in WSL with: openclaw gateway",
             }
         except Exception as exc:
             return {
