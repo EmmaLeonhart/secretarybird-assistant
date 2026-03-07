@@ -32,23 +32,30 @@
     "files": [
       "electron/**/*",
       "assets/**/*",
-      "backend/**/*",
-      "requirements.txt",
       "!**/__pycache__",
       "!**/node_modules"
     ],
     "extraResources": [
       {
+        "from": "dist/backend/tojo-backend",
+        "to": "backend/tojo-backend",
+        "filter": ["**/*"]
+      },
+      {
         "from": "backend",
-        "to": "backend",
+        "to": "backend-src",
         "filter": [
-          "**/*",
+          "**/*.py",
           "!__pycache__"
         ]
       },
       {
         "from": "assets",
         "to": "assets"
+      },
+      {
+        "from": "requirements.txt",
+        "to": "requirements.txt"
       }
     ],
     "win": {
