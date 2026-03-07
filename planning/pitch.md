@@ -8,9 +8,9 @@ Ideas fail for three reasons: **lack of market**, **poor strategy**, and **missi
 
 | Failure reason | How Sakuya avoids it | How Sakuya helps *your* business avoid it |
 |---|---|---|
-| **Lack of market** | Every business needs data tools but can't afford consultants or enterprise software. SMBs are massively underserved. | Competitor analysis reveals where the uncontested market space is — Blue Ocean Strategy finds the gaps others missed. |
-| **Poor strategy** | LLM-agnostic = no vendor lock-in. Desktop-first = works with sensitive data. One-click install = adoption isn't a barrier. | Blue Ocean's Four Actions Framework (Eliminate/Reduce/Raise/Create) gives you a concrete strategic playbook, not just data. |
-| **Missing assets** | Built on proven open-source infra (OpenClaw, Electron, FastAPI). The AI engine handles what you'd otherwise need a full dev team for. | Connects to assets you already have — Salesforce, Google Sheets, databases, APIs. Turns your existing data into strategic insight. |
+| **Lack of market** | "Even great technology fails if nobody needs it." Unlike Segway (a solution looking for a problem), our market is obvious: **every business needs strategy and organization.** SMBs can't afford consultants or enterprise software — they're massively underserved. | Competitor analysis reveals where the uncontested market space is — Blue Ocean Strategy finds the gaps others missed. |
+| **Poor strategy** | **Open question: are we a business or an open-source project?** Either path works — open-source builds community and adoption (like VS Code), freemium monetizes the premium features (competitor analysis, advanced integrations). For the hackathon: "We're open-source first, with a clear freemium path if we commercialize." Avoids the scaling-too-fast trap because open-source grows organically. LLM-agnostic = no vendor lock-in. Desktop-first = works with sensitive data. | Blue Ocean's Four Actions Framework (Eliminate/Reduce/Raise/Create) gives you a concrete strategic playbook, not just data. |
+| **Missing assets** | **This is our biggest honest challenge.** Like Webvan (grocery delivery before the logistics infrastructure existed), the ecosystem isn't there yet — most users don't have WSL, OpenClaw, or browser automation set up. But unlike Webvan, we can *build the infrastructure into the product*. That's exactly why our one-click installer bootstraps the entire stack (WSL + Ubuntu + Node + OpenClaw + Chromium + config). We identified the missing complementary asset and we're shipping it. The installer *is* the ecosystem. | Connects to assets you already have — Salesforce, Google Sheets, databases, APIs. Turns your existing data into strategic insight. |
 
 ### The adoption angle
 
@@ -27,6 +27,22 @@ The judges identified **adoption** as the key barrier: great tools don't create 
 | Vendor lock-in | **LLM-agnostic.** Powered by OpenClaw, which works with *any* LLM — OpenAI, Anthropic, local models, whatever you already pay for. Switch anytime. |
 | "Cool demo, now what?" | **9 real business skills.** File organization, Excel error checking, data processing, competitor analysis, pipeline building — not just chat. |
 | Integration gap | **Connects to your stack.** Salesforce, Google Sheets, PostgreSQL/MySQL/SQLite/MongoDB, any REST API via OpenAPI discovery. |
+
+## Pitch Structure (Judge's Framework)
+
+### 1. What is the problem?
+Badly organized business documents and an unclear strategic environment. Small businesses drown in messy files, broken spreadsheets, and scattered data — and they have no idea what their competitors are doing or where the market opportunities are.
+
+### 2. Who has the problem?
+Small business owners who cannot pay $800/hr for McKinsey or other consulting services. They need strategy and organization but they're priced out of the tools that provide it. Enterprise software (Salesforce, Tableau, etc.) is too complex and too expensive. Consultants are out of reach.
+
+### 3. How will you solve it?
+With a working product — not slides. Sakuya Assistant is a desktop AI that organizes files, checks spreadsheets, connects to your existing tools (Salesforce, Google Sheets, databases), and runs full Blue Ocean Strategy competitor analysis from just a list of URLs. One-click install, works with any AI model, runs locally so your data stays private.
+
+### 4. Why will it work?
+Because it already works and it has almost zero overhead. The program is functional today — 35 API endpoints, 15 test files, CI/CD. It wraps OpenClaw which does all the heavy LLM lifting, so Sakuya itself is thin and fast. No expensive infrastructure to maintain, no per-user cloud costs. The user's own machine does the work. LLM-agnostic means no vendor lock-in, desktop-first means data stays private, and we identified the biggest adoption barrier (setup complexity) and built the solution directly into the installer.
+
+---
 
 ## The 60-Second Pitch
 

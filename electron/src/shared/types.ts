@@ -10,6 +10,8 @@ export const IPC_CHANNELS = {
   WINDOW_MINIMIZE: 'window-minimize',
   WINDOW_MAXIMIZE: 'window-maximize',
   WINDOW_CLOSE: 'window-close',
+  OPENCLAW_KILL: 'openclaw-kill',
+  OPENCLAW_RESTART: 'openclaw-restart',
 } as const;
 
 /** Backend connection status sent over IPC */
@@ -60,6 +62,8 @@ export interface TojoAPI {
   maximizeWindow: () => void;
   closeWindow: () => void;
   getOpenClawStatus: () => Promise<OpenClawStatus>;
+  killOpenClaw: () => Promise<{ ok: boolean; message: string }>;
+  restartOpenClaw: () => Promise<{ ok: boolean; message: string }>;
 }
 
 /** WebSocket message types from the backend */

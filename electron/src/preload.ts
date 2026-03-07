@@ -38,6 +38,10 @@ const tojoAPI: TojoAPI = {
 
   // --- OpenClaw Status ---
   getOpenClawStatus: () => ipcRenderer.invoke(IPC_CHANNELS.OPENCLAW_STATUS),
+
+  // --- OpenClaw Kill / Restart ---
+  killOpenClaw: () => ipcRenderer.invoke(IPC_CHANNELS.OPENCLAW_KILL),
+  restartOpenClaw: () => ipcRenderer.invoke(IPC_CHANNELS.OPENCLAW_RESTART),
 };
 
 contextBridge.exposeInMainWorld('tojoAPI', tojoAPI);
