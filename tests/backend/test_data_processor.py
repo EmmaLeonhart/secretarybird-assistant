@@ -4,7 +4,14 @@ import json
 import pytest
 import pandas as pd
 
-from backend.core.data_processor import DataProcessor
+from backend.core.data_processor import (
+    DataProcessor,
+    TransformRequest,
+    FilterSpec,
+    SortSpec,
+    AggregateSpec,
+    MergeSpec,
+)
 
 
 @pytest.fixture
@@ -94,39 +101,61 @@ class TestDataProcessor:
     def test_filter_data(self, processor, sample_csv):
         """Test filtering data."""
         df = processor.load(sample_csv)
-        result = processor.filter(df, "department", "Engineering")
+        request = TransformRequest(
+            file_path="dummy",
+            filters=[FilterSpec(column="department", operator="eq", value="Engineering")],
+        )
+        result = processor.transform(df, request)
         assert len(result) == 2
         assert all(result["department"] == "Engineering")
 
     def test_sort_data(self, processor, sample_csv):
         """Test sorting data."""
         df = processor.load(sample_csv)
-        result = processor.sort(df, "salary", ascending=False)
+        request = TransformRequest(
+            file_path="dummy",
+            sort=[SortSpec(column="salary", ascending=False)],
+        )
+        result = processor.transform(df, request)
         assert result.iloc[0]["salary"] == 80000
 
     def test_aggregate_data(self, processor, sample_csv):
         """Test aggregating data."""
         df = processor.load(sample_csv)
-        result = processor.aggregate(df, group_by="department", column="salary", func="mean")
+        request = TransformRequest(
+            file_path="dummy",
+            aggregate=AggregateSpec(
+                group_by=["department"],
+                aggregations={"salary": ["mean"]},
+            ),
+        )
+        result = processor.transform(df, request)
         assert isinstance(result, pd.DataFrame)
         assert len(result) == 3  # Engineering, Sales, Marketing
 
     def test_aggregate_sum(self, processor, sample_csv):
         """Test sum aggregation."""
         df = processor.load(sample_csv)
-        result = processor.aggregate(df, group_by="department", column="salary", func="sum")
-        eng_sum = result[result.index == "Engineering"]["salary"].values[0]
+        request = TransformRequest(
+            file_path="dummy",
+            aggregate=AggregateSpec(
+                group_by=["department"],
+                aggregations={"salary": ["sum"]},
+            ),
+        )
+        result = processor.transform(df, request)
+        eng_row = result[result["department"] == "Engineering"]
+        eng_sum = eng_row["salary_sum"].values[0]
         assert eng_sum == 155000  # 75000 + 80000
 
     def test_profile_data(self, processor, sample_csv):
         """Test data profiling."""
         df = processor.load(sample_csv)
         profile = processor.profile(df)
-        assert "row_count" in profile
-        assert "column_count" in profile
+        assert "shape" in profile
         assert "columns" in profile
-        assert profile["row_count"] == 5
-        assert profile["column_count"] == 4
+        assert profile["shape"]["rows"] == 5
+        assert profile["shape"]["columns"] == 4
 
     def test_profile_column_stats(self, processor, sample_csv):
         """Test column-level statistics in profile."""
@@ -134,8 +163,8 @@ class TestDataProcessor:
         profile = processor.profile(df)
         salary_profile = profile["columns"]["salary"]
         assert "dtype" in salary_profile
-        assert "missing" in salary_profile
-        assert salary_profile["missing"] == 0
+        assert "null_count" in salary_profile
+        assert salary_profile["null_count"] == 0
 
     def test_export_csv(self, processor, sample_csv, tmp_path):
         """Test exporting to CSV."""
@@ -157,7 +186,7 @@ class TestDataProcessor:
         """Test exporting to Excel."""
         df = processor.load(sample_csv)
         output = str(tmp_path / "output.xlsx")
-        processor.export(df, output, format="excel")
+        processor.export(df, output, format="xlsx")
         assert os.path.exists(output)
 
     def test_schema_inference(self, processor, sample_csv):
@@ -168,11 +197,20 @@ class TestDataProcessor:
         assert "name" in schema
         assert "salary" in schema
 
-    def test_merge_dataframes(self, processor):
+    def test_merge_dataframes(self, processor, tmp_path):
         """Test merging two DataFrames."""
         df1 = pd.DataFrame({"id": [1, 2, 3], "name": ["A", "B", "C"]})
         df2 = pd.DataFrame({"id": [1, 2, 3], "score": [90, 85, 95]})
-        result = processor.merge(df1, df2, on="id")
+
+        # Save the right DataFrame to a temp file since MergeSpec requires a file path
+        right_file = tmp_path / "right.csv"
+        df2.to_csv(right_file, index=False)
+
+        request = TransformRequest(
+            file_path="dummy",
+            merge=MergeSpec(right_file_path=str(right_file), on=["id"]),
+        )
+        result = processor.transform(df1, request)
         assert len(result) == 3
         assert "name" in result.columns
         assert "score" in result.columns

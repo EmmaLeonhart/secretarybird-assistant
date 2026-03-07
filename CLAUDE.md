@@ -7,10 +7,19 @@
 - **Update README.md regularly.** It should always reflect the current state of the project for human readers.
 
 ## Project Description
-_TODO: Describe what this project is about._
+Tojo Assistant is a Kirumi Tojo-themed business data assistant for the Girls in Tech Hackathon 2026 at UBC Okanagan. It wraps OpenClaw (an LLM-agnostic CLI that works with any LLM including local models) in an Electron desktop GUI with business-specific capabilities: file organization, Excel/Sheets error checking, data processing, Salesforce/Google Suite/database integrations, API discovery, and data pipeline building.
 
 ## Architecture and Conventions
-_TODO: Document key decisions, file structure, and patterns as they emerge._
-
-# currentDate
-Today's date is 2026-03-06.
+- **Backend**: Python 3.13 + FastAPI (`backend/` directory)
+  - `backend/server.py` - FastAPI entry point (REST + WebSocket)
+  - `backend/core/` - File organizer, Excel checker, Data processor
+  - `backend/integrations/` - Salesforce, Google Suite, Databases, API Discovery
+  - `backend/pipeline/` - Data pipeline builder
+  - `backend/openclaw/` - OpenClaw bridge + WSL manager
+- **Frontend**: Electron 28+ with vanilla HTML/CSS/JS (`electron/` directory)
+  - Dark theme with gold accents (Kirumi Tojo color palette)
+  - Chat-based interface with sidebar navigation
+- **Tests**: pytest (`tests/backend/`)
+- **CI**: GitHub Actions (`.github/workflows/ci.yml`)
+- **Installer**: electron-builder produces `.exe` via NSIS
+- Use `python` (not `python3`) on this Windows system

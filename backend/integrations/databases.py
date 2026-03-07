@@ -143,12 +143,21 @@ class DatabaseConnector:
             from sqlalchemy import create_engine
 
             conn_str = build_connection_string(self._config)
-            self._engine = create_engine(
-                conn_str,
-                pool_size=self._config.pool_size,
-                max_overflow=self._config.max_overflow,
-                pool_pre_ping=True,
-            )
+            if self._config.db_type == DatabaseType.SQLITE:
+                from sqlalchemy.pool import StaticPool
+                self._engine = create_engine(
+                    conn_str,
+                    connect_args={"check_same_thread": False},
+                    poolclass=StaticPool,
+                    pool_pre_ping=True,
+                )
+            else:
+                self._engine = create_engine(
+                    conn_str,
+                    pool_size=self._config.pool_size,
+                    max_overflow=self._config.max_overflow,
+                    pool_pre_ping=True,
+                )
             logger.info("Created SQLAlchemy engine for %s", self._config.db_type.value)
 
         return self._engine

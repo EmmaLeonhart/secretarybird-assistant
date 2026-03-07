@@ -15,12 +15,40 @@ import csv
 import logging
 import re
 from collections import Counter, defaultdict
+from dataclasses import dataclass, asdict
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
 import openpyxl
 from openpyxl.utils import get_column_letter
+
+
+# ---------------------------------------------------------------------------
+# Severity enum and ExcelError dataclass
+# ---------------------------------------------------------------------------
+
+class ErrorSeverity(str, Enum):
+    """Severity levels for detected issues."""
+    ERROR = "error"
+    WARNING = "warning"
+    INFO = "info"
+
+
+@dataclass
+class ExcelError:
+    """Structured representation of a spreadsheet issue."""
+    type: str
+    severity: ErrorSeverity
+    sheet: str = ""
+    cell: str = ""
+    message: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["severity"] = self.severity.value
+        return d
 
 logger = logging.getLogger("tojo.excel_checker")
 

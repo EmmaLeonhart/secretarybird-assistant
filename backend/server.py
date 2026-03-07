@@ -172,7 +172,7 @@ class APITestRequest(BaseModel):
 
 class PipelineRunRequest(BaseModel):
     """Pipeline execution request."""
-    definition: PipelineDefinition
+    definition: dict[str, Any]
 
 
 class ChatMessage(BaseModel):
@@ -589,7 +589,8 @@ async def run_pipeline(req: PipelineRunRequest) -> JSONResponse:
     """Execute a data pipeline."""
     try:
         builder: PipelineBuilder = _state["pipeline_builder"]
-        result = await builder.execute(req.definition)
+        definition = PipelineDefinition.from_dict(req.definition)
+        result = builder.execute(definition)
         return JSONResponse(content=result)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -600,7 +601,8 @@ async def validate_pipeline(req: PipelineRunRequest) -> JSONResponse:
     """Validate a pipeline definition without executing it."""
     try:
         builder: PipelineBuilder = _state["pipeline_builder"]
-        errors = builder.validate(req.definition)
+        definition = PipelineDefinition.from_dict(req.definition)
+        errors = builder.validate(definition)
         return JSONResponse(content={"valid": len(errors) == 0, "errors": errors})
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -622,7 +624,8 @@ async def save_pipeline(req: PipelineRunRequest) -> JSONResponse:
     """Save a pipeline definition for later reuse."""
     try:
         builder: PipelineBuilder = _state["pipeline_builder"]
-        path = builder.save(req.definition)
+        definition = PipelineDefinition.from_dict(req.definition)
+        path = builder.save(definition)
         return JSONResponse(content={"saved": True, "path": str(path)})
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
