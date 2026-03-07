@@ -3,7 +3,7 @@ import os
 import tempfile
 import pytest
 
-from backend.core.file_organizer import FileOrganizer, FileCategory
+from backend.core.file_organizer import FileOrganizer, FileCategory, OrganizeRequest
 
 
 @pytest.fixture
@@ -51,87 +51,87 @@ class TestFileOrganizer:
 
     def test_scan_directory(self, organizer, messy_directory):
         """Test scanning a directory returns categorized files."""
-        result = organizer.scan(str(messy_directory))
+        result = organizer.scan_directory(str(messy_directory))
         assert result is not None
-        assert "files" in result
         assert "categories" in result
-        assert len(result["files"]) > 0
+        assert "total_files" in result
+        assert result["total_files"] > 0
 
     def test_categorize_documents(self, organizer, messy_directory):
         """Test that documents are correctly categorized."""
-        result = organizer.scan(str(messy_directory))
+        result = organizer.scan_directory(str(messy_directory))
         categories = result["categories"]
-        assert "documents" in categories
-        doc_files = [f["name"] for f in categories["documents"]]
+        assert "Documents" in categories
+        doc_files = [f["name"] for f in categories["Documents"]]
         assert "report.pdf" in doc_files
         assert "readme.txt" in doc_files
 
     def test_categorize_spreadsheets(self, organizer, messy_directory):
         """Test that spreadsheets are correctly categorized."""
-        result = organizer.scan(str(messy_directory))
+        result = organizer.scan_directory(str(messy_directory))
         categories = result["categories"]
-        assert "spreadsheets" in categories
-        sheet_files = [f["name"] for f in categories["spreadsheets"]]
+        assert "Spreadsheets" in categories
+        sheet_files = [f["name"] for f in categories["Spreadsheets"]]
         assert "budget.xlsx" in sheet_files
         assert "data.csv" in sheet_files
 
     def test_categorize_images(self, organizer, messy_directory):
         """Test that images are correctly categorized."""
-        result = organizer.scan(str(messy_directory))
+        result = organizer.scan_directory(str(messy_directory))
         categories = result["categories"]
-        assert "images" in categories
-        img_files = [f["name"] for f in categories["images"]]
+        assert "Images" in categories
+        img_files = [f["name"] for f in categories["Images"]]
         assert "photo.jpg" in img_files
         assert "logo.png" in img_files
 
     def test_categorize_code(self, organizer, messy_directory):
         """Test that code files are correctly categorized."""
-        result = organizer.scan(str(messy_directory))
+        result = organizer.scan_directory(str(messy_directory))
         categories = result["categories"]
-        assert "code" in categories
-        code_files = [f["name"] for f in categories["code"]]
+        assert "Code" in categories
+        code_files = [f["name"] for f in categories["Code"]]
         assert "script.py" in code_files
         assert "app.js" in code_files
 
     def test_detect_duplicates(self, organizer, messy_directory):
         """Test duplicate file detection."""
-        result = organizer.scan(str(messy_directory))
-        assert "duplicates" in result
+        result = organizer.find_duplicates(str(messy_directory))
+        assert "groups" in result
         # report.pdf and report_copy.pdf have the same content
-        assert len(result["duplicates"]) > 0
+        assert len(result["groups"]) > 0
 
     def test_suggest_structure(self, organizer, messy_directory):
         """Test organization structure suggestion."""
-        result = organizer.scan(str(messy_directory))
-        suggestion = organizer.suggest_structure(result)
+        suggestion = organizer.suggest_structure(str(messy_directory))
         assert suggestion is not None
         assert "proposed_folders" in suggestion
 
     def test_organize_files(self, organizer, messy_directory):
         """Test actually organizing files into folders."""
-        result = organizer.scan(str(messy_directory))
-        organized = organizer.organize(str(messy_directory), dry_run=True)
+        request = OrganizeRequest(source_directory=str(messy_directory), dry_run=True)
+        organized = organizer.organize(request)
         assert organized is not None
-        assert "moves" in organized
-        assert len(organized["moves"]) > 0
+        assert "operations" in organized
+        assert len(organized["operations"]) > 0
 
     def test_organize_dry_run_no_changes(self, organizer, messy_directory):
         """Test that dry run doesn't actually move files."""
         original_files = set(os.listdir(messy_directory))
-        organizer.organize(str(messy_directory), dry_run=True)
+        request = OrganizeRequest(source_directory=str(messy_directory), dry_run=True)
+        organizer.organize(request)
         after_files = set(os.listdir(messy_directory))
         assert original_files == after_files
 
     def test_empty_directory(self, organizer, tmp_path):
         """Test scanning an empty directory."""
-        result = organizer.scan(str(tmp_path))
+        result = organizer.scan_directory(str(tmp_path))
         assert result is not None
-        assert len(result["files"]) == 0
+        assert result["total_files"] == 0
 
     def test_nonexistent_directory(self, organizer):
         """Test scanning a nonexistent directory."""
-        with pytest.raises(FileNotFoundError):
-            organizer.scan("/nonexistent/directory")
+        with pytest.raises(ValueError):
+            organizer.scan_directory("/nonexistent/directory")
 
     def test_file_category_enum(self):
         """Test FileCategory has expected values."""

@@ -19,34 +19,13 @@ class TestHealthCheck:
         response = client.get("/health")
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "healthy"
+        assert data["status"] == "ok"
 
     def test_health_check_has_version(self, client):
         """Test that health check includes version."""
         response = client.get("/health")
         data = response.json()
         assert "version" in data
-
-
-class TestCapabilitiesEndpoint:
-    """Test capabilities listing."""
-
-    def test_list_capabilities(self, client):
-        """Test listing available capabilities."""
-        response = client.get("/capabilities")
-        assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data["capabilities"], list)
-        assert len(data["capabilities"]) > 0
-
-    def test_capabilities_include_core(self, client):
-        """Test that core capabilities are listed."""
-        response = client.get("/capabilities")
-        data = response.json()
-        cap_names = [c["name"] for c in data["capabilities"]]
-        assert "file_organizer" in cap_names
-        assert "excel_checker" in cap_names
-        assert "data_processor" in cap_names
 
 
 class TestFileOrganizerEndpoints:

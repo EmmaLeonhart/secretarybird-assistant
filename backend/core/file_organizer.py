@@ -12,10 +12,30 @@ import os
 import shutil
 from collections import defaultdict
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
+
+
+# ---------------------------------------------------------------------------
+# FileCategory enum
+# ---------------------------------------------------------------------------
+
+class FileCategory(str, Enum):
+    """Categories for file classification."""
+    DOCUMENTS = "Documents"
+    SPREADSHEETS = "Spreadsheets"
+    PRESENTATIONS = "Presentations"
+    IMAGES = "Images"
+    DATA = "Data"
+    CODE = "Code"
+    ARCHIVES = "Archives"
+    AUDIO = "Audio"
+    VIDEO = "Video"
+    EMAIL = "Email"
+    OTHER = "Other"
 
 logger = logging.getLogger("tojo.file_organizer")
 
@@ -111,6 +131,14 @@ class FileOrganizer:
 
     # Hash buffer size for duplicate detection (8 KB)
     _HASH_CHUNK_SIZE = 8192
+
+    def classify_extension(self, ext: str) -> FileCategory:
+        """Classify a file extension into a FileCategory enum value."""
+        category_name = _categorize_extension(ext)
+        try:
+            return FileCategory(category_name)
+        except ValueError:
+            return FileCategory.OTHER
 
     def scan_directory(self, directory: str) -> dict[str, Any]:
         """

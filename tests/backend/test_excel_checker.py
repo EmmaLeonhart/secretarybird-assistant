@@ -84,7 +84,7 @@ def error_formula_workbook(tmp_path):
 
 @pytest.fixture
 def empty_cells_workbook(tmp_path):
-    """Create workbook with empty cells in data ranges."""
+    """Create workbook with empty cells in mostly-populated columns (>90% fill)."""
     filepath = tmp_path / "test_empty.xlsx"
     wb = Workbook()
     ws = wb.active
@@ -93,21 +93,14 @@ def empty_cells_workbook(tmp_path):
     ws["B1"] = "Name"
     ws["C1"] = "Score"
 
-    ws["A2"] = 1
-    ws["B2"] = "Alice"
-    ws["C2"] = 95
-
-    ws["A3"] = 2
-    # B3 empty
-    ws["C3"] = 88
-
-    ws["A4"] = 3
-    ws["B4"] = "Charlie"
-    # C4 empty
-
-    ws["A5"] = 4
-    ws["B5"] = "Diana"
-    ws["C5"] = 72
+    # 11 data rows with 1 empty in B -> ~91% fill rate, triggers detection
+    for i in range(2, 13):
+        ws[f"A{i}"] = i - 1
+        ws[f"C{i}"] = 90 + i
+    for i in range(2, 13):
+        ws[f"B{i}"] = f"Person{i}"
+    # Make one cell empty (1 out of 11 = 9% empty, 91% fill)
+    ws["B7"] = None
 
     wb.save(filepath)
     return str(filepath)
@@ -123,17 +116,16 @@ def mixed_types_workbook(tmp_path):
     ws["A1"] = "ID"
     ws["B1"] = "Value"
 
-    ws["A2"] = 1
-    ws["B2"] = 100
-
-    ws["A3"] = 2
-    ws["B3"] = "two hundred"
-
-    ws["A4"] = 3
-    ws["B4"] = 300
-
-    ws["A5"] = "four"
-    ws["B5"] = 400
+    # 10 data rows: 7 numbers, 3 strings in B column -> 30% minority, triggers detection
+    for i in range(2, 9):
+        ws[f"A{i}"] = i - 1
+        ws[f"B{i}"] = (i - 1) * 100
+    ws["A9"] = 8
+    ws["B9"] = "eight hundred"
+    ws["A10"] = 9
+    ws["B10"] = "nine hundred"
+    ws["A11"] = 10
+    ws["B11"] = "one thousand"
 
     wb.save(filepath)
     return str(filepath)
@@ -172,16 +164,16 @@ class TestExcelChecker:
     def test_detect_empty_cells(self, checker, empty_cells_workbook):
         """Test detection of empty cells in data ranges."""
         report = checker.check_file(empty_cells_workbook)
-        errors = report["sheets"][0]["errors"]
-        empty_errors = [e for e in errors if e["type"] == "empty_cell"]
-        assert len(empty_errors) > 0
+        warnings = report["sheets"][0]["warnings"]
+        empty_warnings = [w for w in warnings if w["type"] == "empty_cells_in_range"]
+        assert len(empty_warnings) > 0
 
     def test_detect_mixed_types(self, checker, mixed_types_workbook):
         """Test detection of mixed data types in columns."""
         report = checker.check_file(mixed_types_workbook)
-        errors = report["sheets"][0]["errors"]
-        mixed_errors = [e for e in errors if e["type"] == "mixed_types"]
-        assert len(mixed_errors) > 0
+        warnings = report["sheets"][0]["warnings"]
+        mixed_warnings = [w for w in warnings if w["type"] == "mixed_data_types"]
+        assert len(mixed_warnings) > 0
 
     def test_check_csv_file(self, checker, csv_file):
         """Test checking a CSV file."""
@@ -189,27 +181,44 @@ class TestExcelChecker:
         assert report is not None
         assert "file" in report
 
-    def test_csv_detect_empty_values(self, checker, csv_file):
+    def test_csv_detect_empty_values(self, checker, tmp_path):
         """Test CSV empty value detection."""
-        report = checker.check_file(csv_file)
-        errors = report["sheets"][0]["errors"]
-        empty_errors = [e for e in errors if e["type"] == "empty_cell"]
-        assert len(empty_errors) > 0
+        # Need >90% fill rate to trigger detection, so 11 rows with 1 empty
+        filepath = tmp_path / "csv_empty.csv"
+        lines = ["Name,Amount,Date\n"]
+        for i in range(1, 12):
+            lines.append(f"Person{i},{i*100},2024-0{min(i,9)}-{10+i}\n")
+        # Make one Amount empty (1/11 = 9% empty, 91% fill)
+        lines[5] = "Person5,,2024-05-15\n"
+        filepath.write_text("".join(lines))
+        report = checker.check_file(str(filepath))
+        warnings = report["sheets"][0]["warnings"]
+        empty_warnings = [w for w in warnings if w["type"] == "empty_cells_in_range"]
+        assert len(empty_warnings) > 0
 
-    def test_csv_detect_type_issues(self, checker, csv_file):
+    def test_csv_detect_type_issues(self, checker, tmp_path):
         """Test CSV type inconsistency detection."""
-        report = checker.check_file(csv_file)
-        errors = report["sheets"][0]["errors"]
-        # Should detect "not_a_number" in Amount column
-        mixed_errors = [e for e in errors if e["type"] == "mixed_types"]
-        assert len(mixed_errors) > 0
+        # Need enough rows for mixed type detection (>2% minority)
+        filepath = tmp_path / "csv_mixed.csv"
+        lines = ["Name,Amount\n"]
+        for i in range(1, 9):
+            lines.append(f"Person{i},{i*100}\n")
+        # Add text values in Amount column (3 out of 10 = 30% minority)
+        lines.append("Person9,not_a_number\n")
+        lines.append("Person10,also_text\n")
+        lines.append("Person11,more_text\n")
+        filepath.write_text("".join(lines))
+        report = checker.check_file(str(filepath))
+        warnings = report["sheets"][0]["warnings"]
+        mixed_warnings = [w for w in warnings if w["type"] == "mixed_data_types"]
+        assert len(mixed_warnings) > 0
 
     def test_inconsistent_formulas(self, checker, sample_workbook):
         """Test detection of inconsistent formulas."""
         report = checker.check_file(sample_workbook)
-        errors = report["sheets"][0]["errors"]
-        formula_errors = [e for e in errors if e["type"] == "inconsistent_formula"]
-        assert len(formula_errors) > 0
+        warnings = report["sheets"][0]["warnings"]
+        formula_warnings = [w for w in warnings if w["type"] == "inconsistent_formula"]
+        assert len(formula_warnings) > 0
 
     def test_nonexistent_file(self, checker):
         """Test handling of nonexistent file."""

@@ -47,7 +47,7 @@ dynamic API discovery for building data pipelines.
 | Backend | Python 3.13 + FastAPI |
 | IPC | HTTP REST + WebSocket |
 | Installer | electron-builder (.exe) |
-| AI Engine | OpenClaw (Claude Code CLI) via WSL |
+| AI Engine | OpenClaw (LLM-agnostic CLI) via WSL |
 | Testing | pytest (Python), GitHub Actions |
 
 ## Directory Structure
