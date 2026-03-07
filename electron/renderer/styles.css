@@ -292,6 +292,41 @@ body {
   box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
 }
 
+.btn-emergency {
+  background: var(--error);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn-emergency:hover {
+  background: #c62828;
+  transform: scale(1.05);
+}
+.btn-emergency:active {
+  transform: scale(0.95);
+}
+
+.btn-restart {
+  background: var(--surface);
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-restart:hover {
+  background: var(--surface-hover);
+}
+
 /* ── Chat Area ────────────────────────────────────────────────────────────── */
 .chat-area {
   flex: 1;

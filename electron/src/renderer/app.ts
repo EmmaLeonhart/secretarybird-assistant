@@ -20,6 +20,8 @@ const typingIndicator = document.getElementById('typing-indicator')!;
 const statusBackend = document.getElementById('status-backend')!;
 const statusOpenClaw = document.getElementById('status-openclaw')!;
 const sidebar = document.getElementById('sidebar')!;
+const btnKillOpenClaw = document.getElementById('btn-kill-openclaw') as HTMLButtonElement;
+const btnRestartOpenClaw = document.getElementById('btn-restart-openclaw') as HTMLButtonElement;
 
 // ── Initialize modules ─────────────────────────────────────────────────────────
 chat.init(chatArea, typingIndicator);
@@ -134,6 +136,30 @@ btnClearChat.addEventListener('click', () => {
 });
 
 btnSystemInfo.addEventListener('click', ui.showSystemInfoModal);
+
+// OpenClaw kill / restart buttons
+btnKillOpenClaw.addEventListener('click', async () => {
+  if (!window.tojoAPI) return;
+  btnKillOpenClaw.disabled = true;
+  btnKillOpenClaw.textContent = '...';
+  const result = await window.tojoAPI.killOpenClaw();
+  chat.appendAssistantMessage(`OpenClaw emergency stop: ${result.message}`);
+  ui.updateConnectionStatus('openclaw', false);
+  btnKillOpenClaw.disabled = false;
+  btnKillOpenClaw.textContent = 'STOP';
+});
+
+btnRestartOpenClaw.addEventListener('click', async () => {
+  if (!window.tojoAPI) return;
+  btnRestartOpenClaw.disabled = true;
+  btnRestartOpenClaw.textContent = 'Restarting...';
+  chat.appendAssistantMessage('Restarting OpenClaw gateway...');
+  const result = await window.tojoAPI.restartOpenClaw();
+  chat.appendAssistantMessage(`OpenClaw restart: ${result.message}`);
+  ui.updateConnectionStatus('openclaw', result.ok);
+  btnRestartOpenClaw.disabled = false;
+  btnRestartOpenClaw.textContent = 'Restart';
+});
 
 // Sidebar nav buttons
 document.querySelectorAll<HTMLButtonElement>('.nav-btn').forEach((btn) => {

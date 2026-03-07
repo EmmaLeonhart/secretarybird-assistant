@@ -347,6 +347,33 @@ function stopOpenClawGateway(): void {
   }
 }
 
+/**
+ * Force-kill ALL OpenClaw processes in WSL, regardless of who started them.
+ * This is the "big red button" — kills openclaw-gateway, openclaw, and openclaw-tui.
+ */
+function forceKillOpenClaw(): { ok: boolean; message: string } {
+  // First stop our own managed process
+  stopOpenClawGateway();
+  openclawProcess = null;
+
+  // Then kill any OpenClaw processes inside WSL
+  const distro = findWSLDistro();
+  if (!distro) {
+    return { ok: false, message: 'No WSL distro found' };
+  }
+
+  try {
+    execSync(`wsl -d ${distro} -- bash -c "pkill -f openclaw-gateway; pkill -f openclaw; true"`, {
+      timeout: 10000,
+    });
+    console.log('[openclaw] Force-killed all OpenClaw processes in WSL');
+    return { ok: true, message: 'OpenClaw killed' };
+  } catch (err) {
+    console.error('[openclaw] Force-kill error:', err);
+    return { ok: true, message: 'Kill command sent (processes may already be dead)' };
+  }
+}
+
 // ── Window creation ────────────────────────────────────────────────────────────
 
 function createMainWindow(): void {
@@ -513,6 +540,24 @@ function registerIPC(): void {
     } catch {
       return { available: false, note: 'Error checking OpenClaw status.' };
     }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.OPENCLAW_KILL, async () => {
+    console.log('[openclaw] Kill requested from UI');
+    return forceKillOpenClaw();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.OPENCLAW_RESTART, async () => {
+    console.log('[openclaw] Restart requested from UI');
+    forceKillOpenClaw();
+    // Wait for processes to die, then restart
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    openclawRetries = 0;
+    await startOpenClawGateway();
+    // Give it a moment to come up
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    const running = await isOpenClawGatewayRunning();
+    return { ok: running, message: running ? 'OpenClaw restarted' : 'OpenClaw restart in progress...' };
   });
 
   ipcMain.on(IPC_CHANNELS.WINDOW_MINIMIZE, () => mainWindow?.minimize());
