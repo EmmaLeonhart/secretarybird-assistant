@@ -62,13 +62,13 @@ async def lifespan(app: FastAPI):
     _state["openclaw_bridge"] = OpenClawBridge()
     _state["active_websockets"] = set()
 
-    # Detect OpenClaw availability at startup
+    # Detect OpenClaw gateway availability at startup
     openclaw_status = _state["openclaw_bridge"].detect()
     _state["openclaw_available"] = openclaw_status["available"]
     if openclaw_status["available"]:
-        logger.info("OpenClaw detected: %s (WSL: %s)", openclaw_status["command"], openclaw_status["via_wsl"])
+        logger.info("OpenClaw gateway connected: %s (agent: %s)", openclaw_status["gateway_url"], openclaw_status["agent_id"])
     else:
-        logger.warning("OpenClaw not found. Chat will use built-in handlers only.")
+        logger.warning("OpenClaw gateway not available: %s", openclaw_status.get("error", "unknown"))
     logger.info("Backend ready.")
     yield
     logger.info("Tojo Assistant backend shutting down...")

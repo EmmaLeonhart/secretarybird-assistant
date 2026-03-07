@@ -26,6 +26,32 @@ let backendReady = false;
 
 // ── Backend lifecycle ──────────────────────────────────────────────────────────
 
+function findPython() {
+  // Find the correct Python interpreter with our packages installed.
+  // On this system, the default `python` may resolve to a different user's
+  // installation that lacks required packages.
+  const fs = require('fs');
+  const candidates = [
+    // Prefer the Immanuelle installation (has all packages)
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python313', 'python.exe'),
+    // Fall back to PATH
+    process.platform === 'win32' ? 'python' : 'python3',
+  ];
+  for (const candidate of candidates) {
+    try {
+      if (candidate.includes(path.sep) && fs.existsSync(candidate)) {
+        return candidate;
+      }
+      if (!candidate.includes(path.sep)) {
+        return candidate; // bare command, let PATH resolve
+      }
+    } catch {
+      continue;
+    }
+  }
+  return process.platform === 'win32' ? 'python' : 'python3';
+}
+
 function startBackend() {
   let cmd, args, cwd;
 
@@ -39,15 +65,17 @@ function startBackend() {
       console.log('[backend] Using packaged exe:', cmd);
     } else {
       console.warn('[backend] Packaged exe not found, falling back to Python');
-      cmd = process.platform === 'win32' ? 'python' : 'python3';
-      args = [path.join(BACKEND_DIR, 'server.py')];
-      cwd = BACKEND_DIR;
+      cmd = findPython();
+      args = ['-m', 'backend.server'];
+      cwd = ROOT_DIR;
     }
   } else {
     // Dev mode: run via Python interpreter
-    cmd = process.platform === 'win32' ? 'python' : 'python3';
-    args = [path.join(BACKEND_DIR, 'server.py')];
-    cwd = BACKEND_DIR;
+    // cwd must be the project root so `from backend.core...` imports resolve
+    cmd = findPython();
+    args = ['-m', 'backend.server'];
+    cwd = ROOT_DIR;
+    console.log('[backend] Using Python:', cmd);
   }
 
   try {

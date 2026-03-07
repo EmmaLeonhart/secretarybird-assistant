@@ -15,14 +15,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM --- Check for Python ---
-where python >NUL 2>NUL
-if errorlevel 1 (
-    echo [ERROR] Python is not installed or not in PATH.
-    echo Please install Python from https://python.org/
-    pause
-    exit /b 1
+REM --- Find the correct Python (Immanuelle's installation with packages) ---
+set "PYTHON="
+if exist "%LOCALAPPDATA%\Programs\Python\Python313\python.exe" (
+    set "PYTHON=%LOCALAPPDATA%\Programs\Python\Python313\python.exe"
+) else (
+    where python >NUL 2>NUL
+    if errorlevel 1 (
+        echo [ERROR] Python is not installed or not in PATH.
+        echo Please install Python from https://python.org/
+        pause
+        exit /b 1
+    )
+    set "PYTHON=python"
 )
+echo Using Python: %PYTHON%
 
 REM --- Install Node.js dependencies if needed ---
 if not exist "node_modules" (
@@ -38,10 +45,10 @@ if not exist "node_modules" (
 )
 
 REM --- Install Python dependencies if needed ---
-python -c "import fastapi" >NUL 2>NUL
+%PYTHON% -c "import fastapi" >NUL 2>NUL
 if errorlevel 1 (
     echo [2/3] Installing Python dependencies...
-    pip install -r requirements.txt
+    %PYTHON% -m pip install -r requirements.txt
     if errorlevel 1 (
         echo [ERROR] pip install failed.
         pause
