@@ -65,16 +65,16 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "assets/tojo-avatar.png",
+      "icon": "assets/tojo-avatar.ico",
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/tojo-avatar.png",
-      "uninstallerIcon": "assets/tojo-avatar.png",
-      "installerHeaderIcon": "assets/tojo-avatar.png",
+      "installerIcon": "assets/tojo-avatar.ico",
+      "uninstallerIcon": "assets/tojo-avatar.ico",
+      "installerHeaderIcon": "assets/tojo-avatar.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Tojo Assistant",
