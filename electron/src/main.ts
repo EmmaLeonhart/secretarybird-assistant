@@ -34,6 +34,10 @@ let backendProcess: ChildProcess | null = null;
 let openclawProcess: ChildProcess | null = null;
 let backendReady = false;
 let backendHealthTimer: ReturnType<typeof setInterval> | null = null;
+let openclawRetries = 0;
+let openclawHealthTimer: ReturnType<typeof setInterval> | null = null;
+const OPENCLAW_MAX_RETRIES = 5;
+const OPENCLAW_RETRY_DELAY = 3000;
 
 // ── Backend lifecycle ──────────────────────────────────────────────────────────
 
@@ -243,6 +247,7 @@ async function startOpenClawGateway(): Promise<void> {
   const running = await isOpenClawGatewayRunning();
   if (running) {
     console.log('[openclaw] Gateway already running on port 18789');
+    openclawRetries = 0;
     return;
   }
 
@@ -252,13 +257,15 @@ async function startOpenClawGateway(): Promise<void> {
     return;
   }
 
-  console.log('[openclaw] Starting gateway via WSL distro:', distro);
+  console.log('[openclaw] Starting gateway via WSL distro:', distro, `(attempt ${openclawRetries + 1}/${OPENCLAW_MAX_RETRIES})`);
 
   try {
     openclawProcess = spawn('wsl', ['-d', distro, '-e', 'bash', '-lc', 'openclaw gateway'], {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
     });
+
+    console.log('[openclaw] Spawned gateway PID:', openclawProcess.pid);
 
     openclawProcess.stdout?.on('data', (data: Buffer) => {
       const output = data.toString().trim();
@@ -272,18 +279,60 @@ async function startOpenClawGateway(): Promise<void> {
 
     openclawProcess.on('error', (err: Error) => {
       console.error('[openclaw] Failed to start gateway:', err.message);
+      openclawProcess = null;
+      retryOpenClawGateway();
     });
 
     openclawProcess.on('exit', (code) => {
       console.log(`[openclaw] Gateway exited with code ${code}`);
       openclawProcess = null;
+      // Only retry on unexpected exits (not when we deliberately stopped it)
+      if (!(app as unknown as { isQuitting: boolean }).isQuitting) {
+        retryOpenClawGateway();
+      }
     });
+
+    // Start health polling for the gateway
+    startOpenClawHealthCheck();
   } catch (err) {
     console.error('[openclaw] Spawn error:', err);
+    retryOpenClawGateway();
   }
 }
 
+function retryOpenClawGateway(): void {
+  if ((app as unknown as { isQuitting: boolean }).isQuitting) return;
+  openclawRetries++;
+  if (openclawRetries >= OPENCLAW_MAX_RETRIES) {
+    console.error(`[openclaw] Gave up after ${OPENCLAW_MAX_RETRIES} attempts`);
+    return;
+  }
+  console.log(`[openclaw] Retrying in ${OPENCLAW_RETRY_DELAY / 1000}s...`);
+  setTimeout(() => {
+    if (!(app as unknown as { isQuitting: boolean }).isQuitting) {
+      startOpenClawGateway();
+    }
+  }, OPENCLAW_RETRY_DELAY);
+}
+
+function startOpenClawHealthCheck(): void {
+  if (openclawHealthTimer) return;
+
+  // Wait a bit for the gateway to initialize before first check
+  openclawHealthTimer = setInterval(async () => {
+    const running = await isOpenClawGatewayRunning();
+    if (running) {
+      // Gateway is healthy, reset retry counter
+      openclawRetries = 0;
+    }
+  }, 10000); // Check every 10 seconds
+}
+
 function stopOpenClawGateway(): void {
+  if (openclawHealthTimer) {
+    clearInterval(openclawHealthTimer);
+    openclawHealthTimer = null;
+  }
   if (openclawProcess) {
     console.log('[openclaw] Stopping gateway...');
     openclawProcess.kill('SIGTERM');
@@ -496,7 +545,10 @@ app.whenReady().then(() => {
   });
 
   registerIPC();
-  startOpenClawGateway();
+  startOpenClawGateway().catch((err) => {
+    console.error('[openclaw] Auto-start failed:', err);
+    retryOpenClawGateway();
+  });
   startBackend();
   createMainWindow();
   createTray();
