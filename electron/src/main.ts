@@ -259,6 +259,16 @@ async function startOpenClawGateway(): Promise<void> {
 
   console.log('[openclaw] Starting gateway via WSL distro:', distro, `(attempt ${openclawRetries + 1}/${OPENCLAW_MAX_RETRIES})`);
 
+  // Pre-clean: remove stale lock files that block gateway startup.
+  // These get left behind when the gateway is killed without cleanup
+  // (common on WSL where systemd/openclaw gateway stop don't work).
+  try {
+    execSync(`wsl -d ${distro} -- bash -c "rm -f /tmp/openclaw-*/gateway.*.lock"`, { timeout: 5000 });
+    console.log('[openclaw] Cleaned stale lock files');
+  } catch {
+    // Lock cleanup is best-effort; if it fails, try starting anyway
+  }
+
   try {
     openclawProcess = spawn('wsl', ['-d', distro, '-e', 'bash', '-lc', 'openclaw gateway'], {
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -363,11 +373,15 @@ function forceKillOpenClaw(): { ok: boolean; message: string } {
   }
 
   try {
-    execSync(`wsl -d ${distro} -- bash -c "pkill -f openclaw-gateway; pkill -f openclaw; true"`, {
+    // Kill all OpenClaw processes AND remove stale lock files.
+    // The lock file at /tmp/openclaw-<UID>/gateway.*.lock prevents restart
+    // even after the process is dead. openclaw gateway stop doesn't work
+    // on WSL because systemd isn't available.
+    execSync(`wsl -d ${distro} -- bash -c "pkill -f openclaw-gateway; pkill -f openclaw; rm -f /tmp/openclaw-*/gateway.*.lock; true"`, {
       timeout: 10000,
     });
-    console.log('[openclaw] Force-killed all OpenClaw processes in WSL');
-    return { ok: true, message: 'OpenClaw killed' };
+    console.log('[openclaw] Force-killed all OpenClaw processes and removed lock files');
+    return { ok: true, message: 'OpenClaw killed and lock files cleaned' };
   } catch (err) {
     console.error('[openclaw] Force-kill error:', err);
     return { ok: true, message: 'Kill command sent (processes may already be dead)' };
