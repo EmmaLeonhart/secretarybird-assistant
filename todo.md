@@ -13,6 +13,10 @@
 - [x] GitHub Actions CI workflow
 - [x] electron-builder config for .exe installer
 - [x] requirements.txt and package.json
+- [x] Competitor analysis module with web scraping + Blue Ocean Strategy
+- [x] Competitor analysis REST endpoints and WebSocket chat handler
+- [x] Strategy section in Electron sidebar UI
+- [x] Competitor analysis test suite
 
 ## Next Steps
 - [ ] Run tests and fix any failures
