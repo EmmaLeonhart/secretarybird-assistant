@@ -385,7 +385,7 @@ function createMainWindow(): void {
     minWidth: 900,
     minHeight: 600,
     icon,
-    title: 'Sakuya Assistant',
+    title: 'Secretary Bird Assistant',
     backgroundColor: '#2d2d2d',
     show: false,
     webPreferences: {
@@ -428,11 +428,11 @@ function createMainWindow(): void {
 function createTray(): void {
   const icon = nativeImage.createFromPath(ICON_PATH).resize({ width: 16, height: 16 });
   tray = new Tray(icon);
-  tray.setToolTip('Sakuya Assistant - I shall handle everything.');
+  tray.setToolTip('Secretary Bird Assistant');
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Show Sakuya Assistant',
+      label: 'Show Secretary Bird Assistant',
       click: () => {
         if (mainWindow) {
           mainWindow.show();

@@ -1,5 +1,5 @@
 /**
- * Sakuya Assistant - Frontend entry point.
+ * Secretary Bird Assistant - Frontend entry point.
  * Wires together all modules and sets up event listeners.
  */
 

@@ -1,8 +1,8 @@
 @echo off
-title Sakuya Assistant - Test Run
+title Secretary Bird Assistant - Test Run
 echo ========================================
-echo   Sakuya Assistant - Test Run
-echo   "I shall handle everything."
+echo   Secretary Bird Assistant - Test Run
+echo   Your AI-powered business assistant.
 echo ========================================
 echo.
 
@@ -59,13 +59,13 @@ if errorlevel 1 (
 )
 
 REM --- Launch the Electron app (which starts the Python backend automatically) ---
-echo [3/3] Starting Sakuya Assistant...
+echo [3/3] Starting Secretary Bird Assistant...
 echo.
 echo   The Electron app will start the Python backend automatically.
-echo   Close the Sakuya Assistant window to stop everything.
+echo   Close the Secretary Bird Assistant window to stop everything.
 echo.
 npx electron .
 
 echo.
-echo Sakuya Assistant closed.
+echo Secretary Bird Assistant closed.
 pause
