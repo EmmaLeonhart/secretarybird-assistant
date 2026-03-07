@@ -39,7 +39,15 @@
       "Bash(tail:*)",
       "Bash(cd /c/Users/Immanuelle/Documents/Github/tojo-assistant && python -m pytest tests/backend/test_file_organizer.py -v 2>&1)",
       "Bash(cd \"C:\\\\Users\\\\Immanuelle\\\\Documents\\\\Github\\\\tojo-assistant\" && python -m pytest tests/backend/test_data_processor.py -v 2>&1)",
-      "Bash(cd /c/Users/Immanuelle/Documents/Github/tojo-assistant && \"C:\\\\Users\\\\Immanuelle\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -m pytest tests/ -v --tb=short 2>&1)"
+      "Bash(cd /c/Users/Immanuelle/Documents/Github/tojo-assistant && \"C:\\\\Users\\\\Immanuelle\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -m pytest tests/ -v --tb=short 2>&1)",
+      "Bash(wsl bash:*)",
+      "Bash(wsl:*)",
+      "Bash(echo No HTTP response:*)",
+      "Bash(curl:*)",
+      "Bash(where python:*)",
+      "Bash(\"C:\\\\Users\\\\Immanuelle\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\":*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)"
     ]
   }
 }
