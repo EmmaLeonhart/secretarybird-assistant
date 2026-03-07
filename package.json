@@ -1,0 +1,78 @@
+{
+  "name": "tojo-assistant",
+  "version": "1.0.0",
+  "description": "Kirumi Tojo-themed business assistant powered by OpenClaw",
+  "main": "electron/main.js",
+  "productName": "Tojo Assistant",
+  "author": {
+    "name": "Team Tojo",
+    "email": "hackathon@tojo-assistant.dev"
+  },
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder build --win",
+    "test": "pytest tests/ -v",
+    "package": "electron-builder build --win --publish never",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "dev.tojo-assistant.app",
+    "productName": "Tojo Assistant",
+    "copyright": "Copyright 2026 Team Tojo",
+    "directories": {
+      "output": "dist",
+      "buildResources": "installer"
+    },
+    "files": [
+      "electron/**/*",
+      "assets/**/*",
+      "backend/**/*",
+      "requirements.txt",
+      "!**/__pycache__",
+      "!**/node_modules"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!__pycache__"
+        ]
+      },
+      {
+        "from": "assets",
+        "to": "assets"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/tojo-avatar.png",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/tojo-avatar.png",
+      "uninstallerIcon": "assets/tojo-avatar.png",
+      "installerHeaderIcon": "assets/tojo-avatar.png",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Tojo Assistant",
+      "installerSidebar": null,
+      "license": null
+    }
+  }
+}
