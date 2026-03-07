@@ -23,7 +23,7 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse
 
 import httpx
 
@@ -34,6 +34,7 @@ except ImportError:
     HAS_BS4 = False
 
 logger = logging.getLogger("tojo.competitor_analysis")
+
 
 # ---------------------------------------------------------------------------
 # Data models

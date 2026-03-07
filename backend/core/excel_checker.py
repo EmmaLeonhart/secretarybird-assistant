@@ -50,6 +50,7 @@ class ExcelError:
         d["severity"] = self.severity.value
         return d
 
+
 logger = logging.getLogger("tojo.excel_checker")
 
 # ---------------------------------------------------------------------------

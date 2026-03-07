@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 logger = logging.getLogger("tojo.salesforce")
 

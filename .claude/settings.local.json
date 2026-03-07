@@ -47,7 +47,8 @@
       "Bash(where python:*)",
       "Bash(\"C:\\\\Users\\\\Immanuelle\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\":*)",
       "Bash(netstat:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(cd /c/Users/Immanuelle/Documents/Github/tojo-assistant && \"C:/Users/Immanuelle/AppData/Local/Programs/Python/Python313/python.exe\" -m flake8 backend/ --max-line-length=120 --ignore=E501,W503,E402 2>&1)"
     ]
   }
 }
