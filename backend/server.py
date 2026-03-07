@@ -12,7 +12,6 @@ Main server module providing:
 import asyncio
 import json
 import logging
-import traceback
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
@@ -20,16 +19,16 @@ from typing import Any, Optional
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
-from pydantic import BaseModel, Field
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from backend.core.file_organizer import FileOrganizer, OrganizeRequest
 from backend.core.excel_checker import ExcelChecker
-from backend.core.data_processor import DataProcessor, TransformRequest, ProfileRequest
+from backend.core.data_processor import DataProcessor, TransformRequest
 from backend.integrations.salesforce import SalesforceConnector, SalesforceConfig
-from backend.integrations.google_suite import GoogleSuiteConnector, GoogleSheetsConfig
+from backend.integrations.google_suite import GoogleSuiteConnector  # noqa: F401 - needed for future endpoints
 from backend.integrations.databases import DatabaseConnector, DatabaseConfig
-from backend.integrations.api_discovery import APIDiscovery, APIConfig
+from backend.integrations.api_discovery import APIDiscovery
 from backend.integrations.competitor_analysis import CompetitorAnalysis
 from backend.pipeline.builder import PipelineBuilder, PipelineDefinition
 from backend.openclaw.bridge import OpenClawBridge
@@ -306,7 +305,7 @@ async def websocket_chat(ws: WebSocket):
                 for i in range(0, len(text), chunk_size):
                     await ws.send_json({
                         "type": "stream_chunk",
-                        "content": text[i : i + chunk_size],
+                        "content": text[i:i + chunk_size],
                     })
                     await asyncio.sleep(0.02)
 

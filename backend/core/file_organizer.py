@@ -8,7 +8,6 @@ Designed for common business file types encountered in office environments.
 
 import hashlib
 import logging
-import os
 import shutil
 from collections import defaultdict
 from datetime import datetime
@@ -16,7 +15,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 # ---------------------------------------------------------------------------
@@ -36,6 +35,7 @@ class FileCategory(str, Enum):
     VIDEO = "Video"
     EMAIL = "Email"
     OTHER = "Other"
+
 
 logger = logging.getLogger("tojo.file_organizer")
 
