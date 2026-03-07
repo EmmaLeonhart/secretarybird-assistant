@@ -2,10 +2,12 @@
 
 A business data assistant themed after Kirumi Tojo from Danganronpa, built for the Girls in Tech Hackathon 2026 at UBC Okanagan.
 
-Tojo Assistant provides an Electron desktop GUI wrapping OpenClaw with specialized business capabilities, and an easier installaton for non-technical customers.
+Tojo Assistant provides an Electron desktop GUI wrapping OpenClaw with specialized business capabilities, and an easier installation for non-technical customers.
 
 ## Features
 
+- **AI Chat with OpenClaw** - LLM-agnostic chat powered by OpenClaw Gateway (works with any LLM — cloud APIs, local models). Streams responses in real-time via WebSocket
+- **Browser Automation** - OpenClaw Browser Relay lets the AI do web research, scrape data, and interact with websites via Chrome extension or managed Chromium
 - **File Organization** - Scan, categorize, and reorganize messy directories with duplicate detection
 - **Excel/Spreadsheet Error Checking** - Detect formula errors (#REF!, #VALUE!, etc.), circular references, inconsistent formulas, mixed data types, and ambiguous date formats
 - **Data Processing** - Load, transform, profile, and export data in CSV, Excel, JSON, and Parquet formats
@@ -13,24 +15,32 @@ Tojo Assistant provides an Electron desktop GUI wrapping OpenClaw with specializ
 - **Google Suite Integration** - Google Sheets read/write/error-check, Google Drive file management
 - **Database Connectivity** - PostgreSQL, MySQL, SQLite, and MongoDB support with schema introspection
 - **API Discovery** - Parse OpenAPI/Swagger specs, store API configs, test endpoints
-- **Competitor Analysis & Blue Ocean Strategy** - Web-scrape competitor websites, build a Strategy Canvas, apply the Four Actions Framework (Eliminate / Reduce / Raise / Create), and surface uncontested market opportunities. Turns Tojo from a data tool into a strategic business consultant
+- **Competitor Analysis & Blue Ocean Strategy** - Web-scrape competitor websites, build a Strategy Canvas, apply the Four Actions Framework (Eliminate / Reduce / Raise / Create), and surface uncontested market opportunities
 - **Data Pipeline Builder** - Chain source, transform, and destination steps into reusable pipelines
-- **OpenClaw Bridge** - WSL-aware bridge to OpenClaw (LLM-agnostic CLI, works with any LLM including local models)
 
 ## Architecture
 
 ```
-Electron Desktop App (Kirumi Tojo themed UI)
-        |  IPC / HTTP
-Python Backend (FastAPI)
+Electron Desktop App (Kirumi Tojo themed UI, TypeScript)
+        |  WebSocket / IPC
+Python Backend (FastAPI, 35 REST endpoints + streaming chat)
         |
-   Core          Integrations          Pipeline    OpenClaw
-   - File Org    - Salesforce          - Builder   - WSL Bridge
-   - Excel       - Google Suite
-   - Data Proc   - Databases
+   Core          Integrations          Pipeline    OpenClaw Gateway
+   - File Org    - Salesforce          - Builder   - HTTP API (SSE streaming)
+   - Excel       - Google Suite                    - Browser Relay (CDP)
+   - Data Proc   - Databases                       - Auth token management
                  - API Discovery
                  - Competitor Analysis
 ```
+
+### OpenClaw Integration
+
+OpenClaw runs inside WSL. The Electron app auto-starts the gateway process and the Python backend communicates with it via the OpenAI-compatible HTTP API:
+
+- **Gateway** (`http://127.0.0.1:18789`) — auto-started on app launch with retry logic and health polling
+- **Chat** (`POST /v1/chat/completions`) — SSE streaming, proxied through backend WebSocket to frontend
+- **Browser Relay** — managed Chromium (isolated) or Chrome extension (uses existing tabs)
+- **Auth** — bearer token auto-read from `~/.openclaw/openclaw.json` in WSL
 
 ## Getting Started
 
@@ -38,25 +48,44 @@ Python Backend (FastAPI)
 
 - Python 3.13+
 - Node.js 18+
-- WSL (for OpenClaw bridge on Windows)
+- WSL with Ubuntu (for OpenClaw)
+- OpenClaw installed in WSL (`npm install -g openclaw`)
+- OpenClaw gateway configured and onboarded (`openclaw onboard`)
 
-### Setup
+### Quick Start
 
 ```bash
-# Install Python dependencies
+# Clone and install
+git clone https://github.com/Emma-Leonhart/tojo-assistant.git
+cd tojo-assistant
+npm install
 pip install -r requirements.txt
 
-# Install Node.js dependencies
-npm install
+# Run (compiles TypeScript, starts backend + Electron)
+npm start
+```
 
-# Compile TypeScript (required before first run)
+Or use the batch file:
+```bash
+!testrun.bat
+```
+
+The Electron app automatically:
+1. Starts the OpenClaw gateway in WSL (if not already running)
+2. Starts the Python backend on port 8000
+3. Connects via WebSocket for streaming chat
+
+### Development
+
+```bash
+# Compile TypeScript only
 npm run compile
 
-# Run the backend server
-python -m backend.server
+# Run with DevTools open
+npm run dev
 
-# Run the Electron app (auto-compiles TypeScript)
-npm start
+# Run backend standalone
+python -m backend.server
 ```
 
 ### Running Tests
@@ -78,33 +107,35 @@ npm run test:backend && npm run test
 npm run build
 ```
 
-This compiles TypeScript, bundles the renderer, and produces a `.exe` installer via electron-builder.
+This compiles TypeScript, packages the Python backend with PyInstaller, and produces a `.exe` installer via electron-builder + NSIS.
+
+See [planning/installer.md](planning/installer.md) for the full installer architecture including WSL bootstrapping for non-technical users.
 
 ## Project Structure
 
 ```
 tojo-assistant/
 ├── electron/
-│   ├── src/               # TypeScript source
-│   │   ├── main.ts        # Main process
-│   │   ├── preload.ts     # Context bridge
-│   │   ├── shared/        # Shared types (IPC channels, API interfaces)
-│   │   └── renderer/      # Renderer modules (app, chat, websocket, etc.)
-│   ├── compiled/          # tsc output (main + preload, gitignored)
-│   └── renderer/          # Frontend (HTML/CSS + esbuild bundle)
-├── backend/               # Python backend
-│   ├── server.py          # FastAPI entry point
-│   ├── core/              # File org, Excel checker, data processor
-│   ├── integrations/      # Salesforce, Google Suite, databases, API discovery
-│   ├── pipeline/          # Data pipeline builder
-│   └── openclaw/          # OpenClaw bridge + WSL manager
+│   ├── src/                  # TypeScript source
+│   │   ├── main.ts           # Main process (lifecycle, IPC, tray)
+│   │   ├── preload.ts        # Context bridge
+│   │   ├── shared/types.ts   # IPC channels, API interfaces
+│   │   └── renderer/         # Frontend modules (6 files)
+│   ├── compiled/             # tsc output (gitignored)
+│   └── renderer/             # HTML/CSS + esbuild bundle
+├── backend/
+│   ├── server.py             # FastAPI entry (35 REST + 1 WebSocket)
+│   ├── core/                 # File org, Excel checker, data processor
+│   ├── integrations/         # Salesforce, Google Suite, databases, API, competitors
+│   ├── pipeline/             # Data pipeline builder
+│   └── openclaw/             # Gateway bridge + WSL utilities
 ├── tests/
-│   ├── backend/           # pytest test suite
-│   └── frontend/          # vitest test suite
-├── scripts/               # Build scripts (esbuild + tsc)
-├── .github/workflows/     # CI/CD
-├── assets/                # Shared assets (Kirumi Tojo avatar)
-└── planning/              # Architecture docs
+│   ├── backend/              # 9 pytest files
+│   └── frontend/             # 6 vitest files
+├── scripts/build.js          # tsc + esbuild build orchestrator
+├── planning/                 # Architecture + installer docs
+├── .github/workflows/        # CI/CD (lint → test → build)
+└── assets/                   # Tojo avatar (PNG + ICO)
 ```
 
 ## Tech Stack
@@ -112,12 +143,12 @@ tojo-assistant/
 | Layer | Technology |
 |-------|-----------|
 | Desktop App | Electron 28+ |
-| Frontend | TypeScript + esbuild (modular architecture) |
-| Backend | Python 3.13 + FastAPI |
-| AI Engine | OpenClaw (LLM-agnostic CLI) via WSL |
-| Testing | pytest (backend) + vitest (frontend) + GitHub Actions |
-| Installer | electron-builder (NSIS) |
-
+| Frontend | TypeScript + esbuild (6 modular renderer files) |
+| Backend | Python 3.13 + FastAPI (35 REST endpoints + WebSocket) |
+| AI Engine | OpenClaw via WSL Gateway HTTP API (LLM-agnostic) |
+| Browser Automation | OpenClaw Browser Relay (CDP protocol) |
+| Testing | pytest (9 files) + vitest (6 files) + GitHub Actions |
+| Installer | electron-builder (NSIS) + PyInstaller (backend) |
 
 ## Hackathon Strategy
 
@@ -125,22 +156,21 @@ tojo-assistant/
 
 | Category | Points | Our approach |
 |---|---|---|
-| **Technical Complexity & Implementation** | **/15** | **This is the big one.** 9 working skills (including web-scraping competitor analysis), LLM-agnostic architecture via OpenClaw, Electron desktop app, full test suite (60+ tests), CI/CD pipeline, script generation. We're not demoing a mockup — this is a working product. |
+| **Technical Complexity & Implementation** | **/15** | **This is the big one.** 9 working skills (including web-scraping competitor analysis), LLM-agnostic architecture via OpenClaw with browser automation, Electron desktop app with TypeScript frontend, full test suite (15 test files), CI/CD pipeline, 35 REST endpoints. We're not demoing a mockup — this is a working product. |
 | Innovation & Creativity | /10 | Blue Ocean Strategy analysis — web-scrape competitors, build a Strategy Canvas, auto-generate the Four Actions Framework. No other hackathon project replaces a business consultant. |
 | Entrepreneurial Value & Business Impact | /10 | The competitor analysis feature alone justifies a subscription. Businesses pay consultants thousands for the kind of strategic output Tojo generates from a URL list. |
-| Design & User Experience | /10 |  |
+| Design & User Experience | /10 | Kirumi Tojo themed dark UI with gold accents. Chat-based interface with real-time streaming. System tray integration. One-click installer for non-technical users. |
 | Presentation | /5 |  |
 | Q&A Session | /5 |  |
-| Exec Check-in | /5 | GitHub with full commit history, this README, todo.md with project plan. |
+| Exec Check-in | /5 | GitHub with full commit history, this README, todo.md with project plan, architecture docs. |
 
 ### Key talking points for the pitch
 - **Technical depth** is our strongest card — working prototype, not slides
-- The AI doesn't just chat — it **generates real code** (scripts, automations)
-- **LLM-agnostic** means the customer saves money — use what you already pay for
-- **Competitor Analysis** is the killer feature — it doesn't just replace a database person, it replaces a strategy consultant. Give it your competitors' URLs and it delivers a full Blue Ocean Strategy analysis: Strategy Canvas, Four Actions Framework, and actionable recommendations for uncontested market space
+- The AI doesn't just chat — it does **web research via browser automation** and **generates real analysis**
+- **LLM-agnostic** means the customer saves money — use what you already pay for (OpenAI, Anthropic, local models, anything)
+- **Competitor Analysis** is the killer feature — it doesn't just replace a database person, it replaces a strategy consultant. Give it your competitors' URLs and it delivers a full Blue Ocean Strategy analysis
 - Blue Ocean Strategy is a proven framework used by Fortune 500 companies — Tojo automates it for SMBs who can't afford McKinsey
-
-
+- **Zero-to-working installer** — one `.exe` sets up everything including WSL, OpenClaw, and browser automation
 
 ## License
 
