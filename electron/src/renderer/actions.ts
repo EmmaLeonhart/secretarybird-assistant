@@ -64,6 +64,47 @@ export async function handleAction(action: string): Promise<void> {
     return;
   }
 
+  // Social feed actions
+  if (action === 'view-social-feeds') {
+    sendUserMessage(
+      'Show me the latest social feeds for Accelerate Okanagan - ' +
+      'recent tweets and Google reviews.',
+    );
+    sendToBackend({
+      type: 'message',
+      content: 'Show social feeds',
+      context: { handler: 'social_feeds' },
+      history: chat.getHistory().slice(-20),
+    });
+    return;
+  }
+
+  if (action === 'social-feed-report') {
+    sendUserMessage(
+      'Generate a daily market analysis report from the social feeds.',
+    );
+    sendToBackend({
+      type: 'message',
+      content: 'Show report',
+      context: { handler: 'social_feeds' },
+      history: chat.getHistory().slice(-20),
+    });
+    return;
+  }
+
+  if (action === 'toggle-heartbeat') {
+    sendUserMessage(
+      'Toggle the heartbeat monitor for daily automated social feed analysis.',
+    );
+    sendToBackend({
+      type: 'message',
+      content: 'Toggle heartbeat',
+      context: { handler: 'social_feeds' },
+      history: chat.getHistory().slice(-20),
+    });
+    return;
+  }
+
   if (action === 'scrape-competitor') {
     sendUserMessage(
       'I want to scout a specific competitor. ' +
