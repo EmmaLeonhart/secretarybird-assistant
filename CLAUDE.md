@@ -23,3 +23,9 @@ Secretary Bird Assistant is a business data assistant for the Girls in Tech Hack
 - **CI**: GitHub Actions (`.github/workflows/ci.yml`)
 - **Installer**: electron-builder produces `.exe` via NSIS
 - Use `python` (not `python3`) on this Windows system
+
+## Long command series run in strict order
+When Emma gives a long series of commands, treat it as a long series of commands to be
+executed in relatively STRICT ORDER, one after another, EVEN IF the order seems not to
+make sense or seems inefficient. The sequencing is intentional — she organizes the steps
+so states change in the order she wants. Do not reorder, merge, or skip steps.
